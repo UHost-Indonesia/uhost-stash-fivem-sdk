@@ -2,7 +2,7 @@ fx_version 'cerulean'
 game 'gta5'
 lua54 'yes'
 
-name 'uhsdk'
+name 'uhost-r2-fivem-sdk'
 author 'uhost.id'
 description 'UHost R2 SDK for FiveM: screenshot, video & audio uploads to r2.uhost.id'
 version '1.0.0'
