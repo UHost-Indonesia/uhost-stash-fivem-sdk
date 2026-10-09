@@ -1,25 +1,27 @@
-# UHost R2 SDK untuk FiveM
+# UHost Stash SDK untuk FiveM
 
-Resource Lua untuk upload **screenshot, video, dan audio** dari server FiveM ke **[UHost R2](https://r2.uhost.id)**.
+> Sebelumnya bernama **UHost R2** (`uhost-r2-fivem-sdk`). Kalau versi lama sudah terpasang, ganti nama folder resource menjadi `uhost-stash-fivem-sdk`, ubah `ensure` di `server.cfg`, dan ganti `exports['uhost-r2-fivem-sdk']` menjadi `exports['uhost-stash-fivem-sdk']` di script kamu. Convar `uhost_api_key` tetap sama.
+
+Resource Lua untuk upload **screenshot, video, dan audio** dari server FiveM ke **[UHost Stash](https://stash.uhost.id)**.
 
 - Murni Lua, tanpa build step.
-- **API key hanya ada di server.** Client meng-upload langsung ke UHost R2 lewat *presigned URL* sekali pakai, jadi bandwidth server game tidak terpakai dan key tidak bocor ke pemain.
+- **API key hanya ada di server.** Client meng-upload langsung ke UHost Stash lewat *presigned URL* sekali pakai, jadi bandwidth server game tidak terpakai dan key tidak bocor ke pemain.
 - Hasil `takeServerImage` diverifikasi di server, jadi client yang dimodifikasi tidak bisa mengirim URL palsu.
-- Metadata pemain (`playerSource`, `playerName`, `identifiers`) otomatis ditambahkan dan tampil di dashboard UHost R2. Identifier `ip` tidak pernah disimpan.
+- Metadata pemain (`playerSource`, `playerName`, `identifiers`) otomatis ditambahkan dan tampil di dashboard UHost Stash. Identifier `ip` tidak pernah disimpan.
 
 ## Instalasi
 
-1. Di dashboard [r2.uhost.id](https://r2.uhost.id), buat bucket. Disarankan tipe **Static / CDN** supaya file tersusun per folder: `screenshots/`, `videos/`, `audio/`.
+1. Di dashboard [stash.uhost.id](https://stash.uhost.id), buat bucket. Disarankan tipe **Static / CDN** supaya file tersusun per folder: `screenshots/`, `videos/`, `audio/`.
 2. Buka **API Keys** → **Create key**, lalu pilih bucket tadi supaya key terikat ke bucket itu.
-3. Download repo ini ([ZIP](https://github.com/UHost-Indonesia/uhost-r2-fivem-sdk/archive/refs/heads/main.zip) atau `git clone`), lalu letakkan di folder `resources/` dengan nama folder **`uhost-r2-fivem-sdk`**. Nama folder menentukan nama export (`exports['uhost-r2-fivem-sdk']`).
+3. Download repo ini ([ZIP](https://github.com/UHost-Indonesia/uhost-stash-fivem-sdk/archive/refs/heads/main.zip) atau `git clone`), lalu letakkan di folder `resources/` dengan nama folder **`uhost-stash-fivem-sdk`**. Nama folder menentukan nama export (`exports['uhost-stash-fivem-sdk']`).
 4. Tambahkan ke `server.cfg`:
 
 ```cfg
 ensure screenshot-basic
-ensure uhost-r2-fivem-sdk
+ensure uhost-stash-fivem-sdk
 
 set uhost_api_key "r2u_xxxxxxxxxxxxxxxxxxxxxxxx"
-set uhost_api_url "https://r2.uhost.id"
+set uhost_api_url "https://stash.uhost.id"
 # Hanya kalau API key TIDAK terikat ke satu bucket:
 # set uhost_bucket "nama-bucket"
 ```
@@ -41,7 +43,7 @@ Ambil screenshot layar pemain, misalnya untuk anticheat atau laporan.
 
 ```lua
 local ok, res = pcall(function()
-    return exports['uhost-r2-fivem-sdk']:takeServerImage(source, { reason = 'report #12' })
+    return exports['uhost-stash-fivem-sdk']:takeServerImage(source, { reason = 'report #12' })
 end)
 if ok then
     print('Screenshot: ' .. res.url)
@@ -55,7 +57,7 @@ end
 Mode callback:
 
 ```lua
-exports['uhost-r2-fivem-sdk']:takeServerImage(source, nil, nil, nil, function(res, err)
+exports['uhost-stash-fivem-sdk']:takeServerImage(source, nil, nil, nil, function(res, err)
     if err then return print(err) end
     print(res.url)
 end)
@@ -64,7 +66,7 @@ end)
 JavaScript:
 
 ```js
-const res = await exports['uhost-r2-fivem-sdk'].takeServerImage(source, { reason: "anticheat" });
+const res = await exports['uhost-stash-fivem-sdk'].takeServerImage(source, { reason: "anticheat" });
 console.log(res.url);
 ```
 
@@ -73,7 +75,7 @@ console.log(res.url);
 Upload dari server. `data` boleh berupa data URI (`data:image/png;base64,...`), string base64, atau byte mentah.
 
 ```lua
-local res = exports['uhost-r2-fivem-sdk']:uploadImage(dataUri, {
+local res = exports['uhost-stash-fivem-sdk']:uploadImage(dataUri, {
     fileName = 'evidence.png', -- opsional; di bucket static menjadi nama file persis
     path = 'evidence',         -- opsional; folder (bucket static)
     metadata = { case = 7 },
@@ -86,7 +88,7 @@ Menghasilkan URL upload sekali pakai (berlaku 15 menit) untuk `'image'`, `'video
 Kirim URL-nya ke NUI, lalu NUI meng-upload langsung tanpa API key.
 
 ```lua
-local url = exports['uhost-r2-fivem-sdk']:requestPresignedUrl('video', {
+local url = exports['uhost-stash-fivem-sdk']:requestPresignedUrl('video', {
     metadata = { clip = 'heist' },
     expiresIn = 600, -- detik, opsional
 })
@@ -95,10 +97,10 @@ local url = exports['uhost-r2-fivem-sdk']:requestPresignedUrl('video', {
 ### `getFile(idOrKey)`, `listFiles(query?)`, `deleteFile(idOrKey)`
 
 ```lua
-local file = exports['uhost-r2-fivem-sdk']:getFile('screenshots/ABCD1234.webp')
-local page = exports['uhost-r2-fivem-sdk']:listFiles({ type = 'image', path = 'screenshots', page = 1, limit = 50 })
+local file = exports['uhost-stash-fivem-sdk']:getFile('screenshots/ABCD1234.webp')
+local page = exports['uhost-stash-fivem-sdk']:listFiles({ type = 'image', path = 'screenshots', page = 1, limit = 50 })
 -- page.data = list file, page.pagination = { page, limit, total }
-exports['uhost-r2-fivem-sdk']:deleteFile(file.id)
+exports['uhost-stash-fivem-sdk']:deleteFile(file.id)
 ```
 
 ## Export client
@@ -109,7 +111,7 @@ Pemain mengambil screenshot sendiri, misalnya untuk kamera, foto profil, atau bu
 
 ```lua
 CreateThread(function()
-    local res = exports['uhost-r2-fivem-sdk']:takeImage({ app = 'camera' })
+    local res = exports['uhost-stash-fivem-sdk']:takeImage({ app = 'camera' })
     print(res.url)
 end)
 ```
@@ -123,7 +125,7 @@ Untuk NUI yang merekam video/audio sendiri (misalnya `MediaRecorder`). File sela
 RegisterNUICallback('getUploadUrl', function(data, cb)
     CreateThread(function()
         local ok, url = pcall(function()
-            return exports['uhost-r2-fivem-sdk']:requestPresignedUrl(data.fileType)
+            return exports['uhost-stash-fivem-sdk']:requestPresignedUrl(data.fileType)
         end)
         cb(ok and { url = url } or { error = url })
     end)
@@ -152,13 +154,13 @@ SDK ini adalah resource "library": ia tidak punya fitur yang terlihat pemain, ta
 Tambahkan dependency di `fxmanifest.lua` resource kamu supaya SDK selalu start lebih dulu:
 
 ```lua
-dependency 'uhost-r2-fivem-sdk'
+dependency 'uhost-stash-fivem-sdk'
 ```
 
 Supaya pemanggilan lebih ringkas, simpan export-nya ke variabel lokal:
 
 ```lua
-local R2 = exports['uhost-r2-fivem-sdk']
+local Stash = exports['uhost-stash-fivem-sdk']
 ```
 
 ### 2. Report pemain + bukti screenshot (server)
@@ -166,14 +168,14 @@ local R2 = exports['uhost-r2-fivem-sdk']
 Saat pemain membuat report, server mengambil screenshot layar pemain itu dan menyimpan link-nya.
 
 ```lua
-local R2 = exports['uhost-r2-fivem-sdk']
+local Stash = exports['uhost-stash-fivem-sdk']
 
 RegisterCommand('report', function(source, args)
     local reason = table.concat(args, ' ')
     if reason == '' then return end
 
     local ok, res = pcall(function()
-        return R2:takeServerImage(source, { reason = reason }, { path = 'reports' })
+        return Stash:takeServerImage(source, { reason = reason }, { path = 'reports' })
     end)
 
     if not ok then
@@ -191,10 +193,10 @@ end, false)
 Ambil bukti sebelum mengambil tindakan. Mode callback cocok kalau tidak ingin memblok thread.
 
 ```lua
-local R2 = exports['uhost-r2-fivem-sdk']
+local Stash = exports['uhost-stash-fivem-sdk']
 
 AddEventHandler('myanticheat:detected', function(playerId, detection)
-    R2:takeServerImage(playerId, { detection = detection }, { path = 'anticheat' }, 10000, function(res, err)
+    Stash:takeServerImage(playerId, { detection = detection }, { path = 'anticheat' }, 10000, function(res, err)
         local evidence = res and res.url or ('tidak ada screenshot: ' .. tostring(err))
         print(('[anticheat] %s terdeteksi %s | %s'):format(GetPlayerName(playerId), detection, evidence))
         -- DropPlayer(playerId, 'Cheat terdeteksi')
@@ -208,12 +210,12 @@ Pemain mengambil foto dari layarnya sendiri, lalu link-nya dikirim ke server unt
 
 ```lua
 -- client.lua
-local R2 = exports['uhost-r2-fivem-sdk']
+local Stash = exports['uhost-stash-fivem-sdk']
 
 RegisterCommand('foto', function()
     CreateThread(function()
         local ok, res = pcall(function()
-            return R2:takeImage({ app = 'camera' })
+            return Stash:takeImage({ app = 'camera' })
         end)
         if ok then
             TriggerServerEvent('mycamera:savePhoto', res.url)
@@ -228,8 +230,8 @@ end)
 -- server.lua
 RegisterNetEvent('mycamera:savePhoto', function(url)
     local src = source
-    -- Hanya terima link dari UHost R2
-    if type(url) ~= 'string' or not url:find('^https://r2%.uhost%.id/') then return end
+    -- Hanya terima link dari UHost Stash
+    if type(url) ~= 'string' or not url:find('^https://stash%.uhost%.id/') then return end
     print(('%s menyimpan foto: %s'):format(GetPlayerName(src), url))
 end)
 ```
@@ -239,14 +241,14 @@ end)
 Ambil foto wajah tersangka dan simpan di folder terpisah. Tambahkan pengecekan job/izin sesuai framework kamu (ESX, QBCore, Qbox, ox_core, dan lainnya).
 
 ```lua
-local R2 = exports['uhost-r2-fivem-sdk']
+local Stash = exports['uhost-stash-fivem-sdk']
 
 RegisterNetEvent('mymdt:takeMugshot', function(targetId)
     local officer = source
     -- if not isPolice(officer) then return end   -- cek job sesuai framework kamu
 
     local ok, res = pcall(function()
-        return R2:takeServerImage(targetId, { officer = GetPlayerName(officer) }, { path = 'mugshots' })
+        return Stash:takeServerImage(targetId, { officer = GetPlayerName(officer) }, { path = 'mugshots' })
     end)
     if ok then
         TriggerClientEvent('mymdt:mugshotTaken', officer, res.url)
@@ -257,37 +259,37 @@ end)
 ### 6. Simpan link ke database (oxmysql)
 
 ```lua
-local R2 = exports['uhost-r2-fivem-sdk']
+local Stash = exports['uhost-stash-fivem-sdk']
 
 local function savePhoto(playerId, identifier)
-    local res = R2:takeServerImage(playerId, nil, { path = 'photos' })
+    local res = Stash:takeServerImage(playerId, nil, { path = 'photos' })
     MySQL.insert.await('INSERT INTO player_photos (identifier, url, file_id) VALUES (?, ?, ?)', {
         identifier, res.url, res.id,
     })
     return res.url
 end
 
--- Hapus juga file-nya di UHost R2 saat datanya dihapus
+-- Hapus juga file-nya di UHost Stash saat datanya dihapus
 local function deletePhoto(fileId)
-    exports['uhost-r2-fivem-sdk']:deleteFile(fileId)
+    exports['uhost-stash-fivem-sdk']:deleteFile(fileId)
     MySQL.update.await('DELETE FROM player_photos WHERE file_id = ?', { fileId })
 end
 ```
 
 ### 7. Rekam video / voice note dari NUI
 
-Alurnya: NUI meminta URL upload ke client script, client script memanggil `requestPresignedUrl`, lalu NUI meng-upload hasil rekaman langsung ke UHost R2. Contoh lengkapnya ada di bagian [`requestPresignedUrl` (client)](#requestpresignedurlfiletype-metadata).
+Alurnya: NUI meminta URL upload ke client script, client script memanggil `requestPresignedUrl`, lalu NUI meng-upload hasil rekaman langsung ke UHost Stash. Contoh lengkapnya ada di bagian [`requestPresignedUrl` (client)](#requestpresignedurlfiletype-metadata).
 File otomatis masuk ke folder `videos/` atau `audio/` (atur di `Config.Folders`).
 
 ### 8. Dari resource JavaScript
 
 ```js
-const R2 = exports["uhost-r2-fivem-sdk"];
+const Stash = exports["uhost-stash-fivem-sdk"];
 
 onNet("myresource:capture", async () => {
   const src = global.source;
   try {
-    const res = await R2.takeServerImage(src, { reason: "js-example" });
+    const res = await Stash.takeServerImage(src, { reason: "js-example" });
     console.log(`Screenshot: ${res.url}`);
   } catch (err) {
     console.error(err);
@@ -297,10 +299,10 @@ onNet("myresource:capture", async () => {
 
 ## Log ke Discord
 
-Log upload dan hapus file **tidak perlu diatur di SDK**. Aktifkan per bucket di dashboard UHost R2:
+Log upload dan hapus file **tidak perlu diatur di SDK**. Aktifkan per bucket di dashboard UHost Stash:
 
 1. Di Discord: **Channel settings → Integrations → Webhooks → New Webhook → Copy Webhook URL**.
-2. Di [r2.uhost.id](https://r2.uhost.id): buka bucket → **Discord webhook** → tempel URL → **Add webhook**.
+2. Di [stash.uhost.id](https://stash.uhost.id): buka bucket → **Discord webhook** → tempel URL → **Add webhook**.
 3. Klik **Send test** untuk memastikan pesannya masuk. Pilih event yang dikirim (**Upload** / **Delete**), dan matikan sementara lewat tombol **Active** kapan saja.
 
 Setiap log berisi nama file, ukuran, preview gambar, nama dan ID pemain, identifier, serta metadata yang kamu kirim (misalnya `reason` di contoh report). Log dari banyak upload sekaligus otomatis digabung supaya tidak terkena rate limit Discord.
@@ -321,21 +323,21 @@ Setiap log berisi nama file, ukuran, preview gambar, nama dan ID pemain, identif
 
 ## Upload langsung lewat HTTP
 
-Resource lain juga bisa langsung memakai API UHost R2 tanpa SDK ini (misalnya dari kode server), dengan header `Authorization: <api key>`:
+Resource lain juga bisa langsung memakai API UHost Stash tanpa SDK ini (misalnya dari kode server), dengan header `Authorization: <api key>`:
 
 | Endpoint | Fungsi |
 |---|---|
-| `POST https://r2.uhost.id/api/v3/file` | upload multipart (field `file`, opsional `path`, `filename`, `metadata`) |
-| `POST https://r2.uhost.id/api/v3/file/base64` | upload JSON `{ base64, filename?, path?, metadata? }` |
-| `GET https://r2.uhost.id/api/v3/file/presigned-url?fileType=image` | buat URL upload sekali pakai |
-| `GET https://r2.uhost.id/api/v3/file?type=image&path=screenshots` | daftar file |
-| `GET` / `DELETE https://r2.uhost.id/api/v3/file/<id atau key>` | detail / hapus file |
+| `POST https://stash.uhost.id/api/v3/file` | upload multipart (field `file`, opsional `path`, `filename`, `metadata`) |
+| `POST https://stash.uhost.id/api/v3/file/base64` | upload JSON `{ base64, filename?, path?, metadata? }` |
+| `GET https://stash.uhost.id/api/v3/file/presigned-url?fileType=image` | buat URL upload sekali pakai |
+| `GET https://stash.uhost.id/api/v3/file?type=image&path=screenshots` | daftar file |
+| `GET` / `DELETE https://stash.uhost.id/api/v3/file/<id atau key>` | detail / hapus file |
 
 Respons upload: `{ "status": "ok", "data": { "id": "...", "url": "https://..." } }`. Kalau API key tidak terikat ke satu bucket, tambahkan `?bucket=<nama>`.
 
 ## Batasan
 
-- Maksimum ukuran per file mengikuti server UHost R2 (default 500 MB). Lewat Cloudflare, satu request dibatasi 100 MB.
+- Maksimum ukuran per file mengikuti server UHost Stash (default 500 MB). Lewat Cloudflare, satu request dibatasi 100 MB.
 - Rate limit diatur per API key di dashboard (**API Keys → ikon pensil**). Defaultnya 60 request/menit, dan kamu bisa menurunkannya sendiri. Untuk batas yang lebih tinggi, hubungi admin UHost. Satu screenshot lewat SDK memakai sekitar 3 request.
 
 ## Lisensi
